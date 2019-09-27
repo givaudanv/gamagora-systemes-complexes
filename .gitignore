@@ -35,6 +35,7 @@ sysinfo.txt
 *.apk
 *.unitypackage
 
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
