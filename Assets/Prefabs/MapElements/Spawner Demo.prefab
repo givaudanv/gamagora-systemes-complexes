@@ -64,7 +64,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 242887f06e08afb4eb0b8e4b29afdbd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weakling: {fileID: 7477599397557249187, guid: 2c017cc0f93ad7f479642ea77a808952,
+  weakling: {fileID: 7477599397557249187, guid: a135e2d8daa5f3843886817d91dcd999,
     type: 3}
 --- !u!114 &2448285316278501001
 MonoBehaviour:

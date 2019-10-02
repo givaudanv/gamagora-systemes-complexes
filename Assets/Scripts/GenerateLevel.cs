@@ -58,20 +58,20 @@ public class GenerateLevel : MonoBehaviour
     {
         MapElementController mapElement = obj.GetComponent<MapElementController>();
         mapElement.posMatrix = new Vector2(row, col);
-        if (row < 39 && col > 0)
-            mapElement.neightbors.Add(mapElements[row + 1, col - 1]);
+        // if (row < 39 && col > 0)
+        //     mapElement.neightbors.Add(mapElements[row + 1, col - 1]);
         if (row < 39)
             mapElement.neightbors.Add(mapElements[row + 1, col]);
-        if (row < 39 && col < 39)
-            mapElement.neightbors.Add(mapElements[row + 1, col + 1]);
+        // if (row < 39 && col < 39)
+        //     mapElement.neightbors.Add(mapElements[row + 1, col + 1]);
         if (col < 39)
             mapElement.neightbors.Add(mapElements[row, col + 1]);
-        if (row > 0 && col < 39)
-            mapElement.neightbors.Add(mapElements[row - 1, col + 1]);
+        // if (row > 0 && col < 39)
+        //     mapElement.neightbors.Add(mapElements[row - 1, col + 1]);
         if (row > 0)
             mapElement.neightbors.Add(mapElements[row - 1, col]);
-        if (row > 0 && col > 0)
-            mapElement.neightbors.Add(mapElements[row - 1, col - 1]);
+        // if (row > 0 && col > 0)
+        //     mapElement.neightbors.Add(mapElements[row - 1, col - 1]);
         if (col > 0)
             mapElement.neightbors.Add(mapElements[row, col - 1]);
     }

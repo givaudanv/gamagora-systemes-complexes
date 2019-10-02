@@ -5,6 +5,6 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     public GameObject[,] map;
+    public GameObject player;
     public Vector2 posPlayer = new Vector2(7, 7);
-
 }

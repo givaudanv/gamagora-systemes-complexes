@@ -8,6 +8,12 @@ public class SpawnEnemies : MonoBehaviour
 
     void Start()
     {
-        //Instantiate(weakling, new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), transform.rotation);
+        //InvokeRepeating("Spawn", 0f, 5f);
+        Spawn();
+    }
+
+    void Spawn()
+    {
+        Instantiate(weakling, new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), transform.rotation);
     }
 }
