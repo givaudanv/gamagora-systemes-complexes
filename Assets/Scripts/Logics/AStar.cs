@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AStar : MonoBehaviour
 {
-    GameController gameController;
+    public GameController gameController;
     bool victoire = false;
 
     void Start()
@@ -14,6 +14,7 @@ public class AStar : MonoBehaviour
 
     public List<GameObject> RunAStar(GameObject target = null)
     {
+        //gameController.resetColor();
         Dictionary<GameObject, int> openList = new Dictionary<GameObject, int>();
         Dictionary<GameObject, GameObject> cameFrom = new Dictionary<GameObject, GameObject>();
         List<GameObject> closedList = new List<GameObject>();
@@ -21,11 +22,11 @@ public class AStar : MonoBehaviour
 
         GameObject targetPos = null;
         if (!target)
-            targetPos = gameController.player.GetComponent<PlayerController>().objectPosition;
+            targetPos = gameController.player.GetComponent<MatrixPosition>().objectPosition;
         else
-            targetPos = target.GetComponent<EnemyController>().objectPosition;
+            targetPos = target.GetComponent<MatrixPosition>().objectPosition;
 
-        GameObject IAPos = gameObject.GetComponent<EnemyController>().objectPosition;
+        GameObject IAPos = gameObject.GetComponent<MatrixPosition>().objectPosition;
         GameObject nextNode = null;
 
         openList.Add(IAPos, 0);
@@ -41,12 +42,14 @@ public class AStar : MonoBehaviour
             {
                 openList.Remove(nextNode);
                 closedList.Add(nextNode);
+                //nextNode.GetComponent<Renderer>().material.color = Color.green;
                 foreach (GameObject neightbor in nextNode.GetComponent<MapElementController>().neightbors)
                 {
                     if (!openList.ContainsKey(neightbor) && !closedList.Contains(neightbor) && neightbor.tag != "Uncrossable")
                     {
                         openList.Add(neightbor, ComputeCost(neightbor, StepsToReach(neightbor, cameFrom), targetPos));
                         cameFrom.Add(neightbor, nextNode);
+                        //neightbor.GetComponent<Renderer>().material.color = Color.blue;
                     }
                 }
             }

@@ -13,7 +13,7 @@ public class AStarDemo : MonoBehaviour
     {
         gameController = GameObject.FindWithTag("GameMaster").GetComponent<GameController>();
         map = gameController.map;
-        if (gameObject.GetComponent<EnemyController>().objectPosition)
+        if (gameObject.GetComponent<MatrixPosition>().objectPosition)
         {
             StartCoroutine(RunAStar());
         }
@@ -21,7 +21,7 @@ public class AStarDemo : MonoBehaviour
 
     void Update()
     {
-        if (!lance && gameObject.GetComponent<EnemyController>().objectPosition)
+        if (!lance && gameObject.GetComponent<MatrixPosition>().objectPosition)
         {
             StartCoroutine(RunAStar());
             lance = true;
@@ -38,7 +38,7 @@ public class AStarDemo : MonoBehaviour
         Dictionary<GameObject, GameObject> cameFrom = new Dictionary<GameObject, GameObject>();
         List<GameObject> closedList = new List<GameObject>();
         GameObject playerPos = map[(int)gameController.posPlayer.x, (int)gameController.posPlayer.y];
-        GameObject IAPos = gameObject.GetComponent<EnemyController>().objectPosition;
+        GameObject IAPos = gameObject.GetComponent<MatrixPosition>().objectPosition;
 
         openList.Add(IAPos, 0);
 

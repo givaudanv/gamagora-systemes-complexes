@@ -51,6 +51,8 @@ public class GenerateLevel : MonoBehaviour
         if (gameMaster)
         {
             gameMaster.GetComponent<GameController>().map = mapElements;
+            gameMaster.GetComponent<GameController>().nbRow = nbRow;
+            gameMaster.GetComponent<GameController>().nbCol = nbColumn;
         }
     }
 
