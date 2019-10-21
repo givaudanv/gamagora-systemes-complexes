@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class HeroController : MonoBehaviour
 {
     public HeroStates hStates;
+    public Text text;
     private bool seeEnemy = false;
     private bool inAttackRange = false;
     private bool superAttackReady = false;
@@ -52,6 +54,7 @@ public class HeroController : MonoBehaviour
                 if (!superAttackReady) hStates = HeroStates.Attacking;
                 break;
         }
+        text.text = "State : " + hStates.ToString();
     }
 
     private void Roam()
