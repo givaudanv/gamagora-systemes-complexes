@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class Flock : MonoBehaviour
 {
+    [Range(0, 50)]
     public float maxSpeed;
+    [Range(0, 50)]
     public float minDistance;
 
     List<GameObject> boids;
@@ -14,7 +16,8 @@ public class Flock : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         boids = new List<GameObject>();
-        rb.velocity = new Vector3(1, 1, 1);
+        float angle = Random.Range(0, 2 * Mathf.PI);
+        rb.velocity = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), Mathf.Tan(angle));
     }
 
     void FixedUpdate()
@@ -28,9 +31,11 @@ public class Flock : MonoBehaviour
 
     void ScaleVelocity()
     {
-        if (rb.velocity.x > maxSpeed || rb.velocity.y > maxSpeed || rb.velocity.z > maxSpeed)
+        if (rb.velocity.x > maxSpeed || rb.velocity.y > maxSpeed || rb.velocity.z > maxSpeed ||
+        rb.velocity.x < maxSpeed || rb.velocity.y < maxSpeed || rb.velocity.z < maxSpeed)
         {
-
+            float scaleFactor = maxSpeed / Mathf.Max(Mathf.Max(Mathf.Abs(rb.velocity.x), Mathf.Abs(rb.velocity.y)), Mathf.Abs(rb.velocity.z));
+            rb.velocity = new Vector3(rb.velocity.x * scaleFactor, rb.velocity.y * scaleFactor, rb.velocity.z * scaleFactor);
         }
     }
 
@@ -57,8 +62,11 @@ public class Flock : MonoBehaviour
             avgDistance += transform.position - b.transform.position;
         }
 
-        avgDistance /= boids.Count;
-        rb.velocity -= avgDistance / 100;
+        if (boids.Count > 0)
+        {
+            avgDistance /= boids.Count;
+            rb.velocity -= avgDistance / 100;
+        }
     }
 
     void Align()
@@ -70,8 +78,11 @@ public class Flock : MonoBehaviour
             avgVelocity += b.GetComponent<Rigidbody>().velocity;
         }
 
-        avgVelocity /= boids.Count;
-        rb.velocity += avgVelocity / 40;
+        if (boids.Count > 0)
+        {
+            avgVelocity /= boids.Count;
+            rb.velocity += avgVelocity / 40;
+        }
     }
 
     void Repel()

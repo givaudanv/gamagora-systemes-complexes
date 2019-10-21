@@ -6,6 +6,6 @@ public class TeleportBoundaries : MonoBehaviour
 {
     void OnTriggerExit(Collider other)
     {
-        other.transform.position = new Vector3(Random.Range(-25, 25), Random.Range(-25, 25), Random.Range(0 - 25, 25));
+        other.transform.position = transform.position - other.transform.position;
     }
 }
