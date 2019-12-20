@@ -1,121 +1,151 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Flock : MonoBehaviour
 {
-    [Range(0, 50)]
-    public float maxSpeed;
-    [Range(0, 50)]
-    public float minDistance;
+    public FlockMaster flockM;
+    public GameObject leader;
+    public Vector3 velocity;
 
-    List<GameObject> boids;
-    Rigidbody rb;
+    private bool leaderActive;
+    private float maxSpeed;
+    private float maxForce;
+    private float neighborhoodRadius;
+    private float separationAmount;
+    private float cohesionAmount;
+    private float alignmentAmount;
+
+    private Vector3 acceleration;
+    private List<GameObject> boids;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        leader = GameObject.FindGameObjectWithTag("FlockM");
+        flockM = leader.GetComponent<FlockMaster>();
         boids = new List<GameObject>();
-        float angle = Random.Range(0, 2 * Mathf.PI);
-        rb.velocity = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), Mathf.Tan(angle));
     }
 
     void FixedUpdate()
     {
+        maxSpeed = flockM.maxSpeed;
+        maxForce = flockM.maxForce;
+        neighborhoodRadius = flockM.neighborhoodRadius;
+        separationAmount = flockM.separationAmount;
+        cohesionAmount = flockM.cohesionAmount;
+        alignmentAmount = flockM.alignmentAmount;
+        leaderActive = flockM.leaderActive;
         CloseBoids();
-        Attract();
-        Align();
-        Repel();
-        ScaleVelocity();
+        Flocking();
+        UpdateVelocity();
+        UpdatePosition();
     }
 
-    void ScaleVelocity()
+    public void UpdateVelocity()
     {
-        if (rb.velocity.x > maxSpeed || rb.velocity.y > maxSpeed || rb.velocity.z > maxSpeed ||
-        rb.velocity.x < maxSpeed || rb.velocity.y < maxSpeed || rb.velocity.z < maxSpeed)
-        {
-            float scaleFactor = maxSpeed / Mathf.Max(Mathf.Max(Mathf.Abs(rb.velocity.x), Mathf.Abs(rb.velocity.y)), Mathf.Abs(rb.velocity.z));
-            rb.velocity = new Vector3(rb.velocity.x * scaleFactor, rb.velocity.y * scaleFactor, rb.velocity.z * scaleFactor);
-        }
+        velocity += acceleration;
+        velocity = LimitMagnitude(velocity, maxSpeed);
+    }
+
+    private void UpdatePosition()
+    {
+        transform.position += velocity * Time.deltaTime;
+    }
+
+    void Flocking()
+    {
+        var alignment = Align();
+        var repel = Repel();
+        var attract = Attract();
+
+        acceleration = alignmentAmount * alignment + cohesionAmount * attract + separationAmount * repel;
     }
 
     void CloseBoids()
     {
-        boids.Clear();
         int layer = 1 << LayerMask.NameToLayer("Summons");
-        Collider[] summons = Physics.OverlapSphere(transform.position, 20f, layer);
-        if (summons.Length > 0)
-        {
-            foreach (Collider s in summons)
-            {
-                boids.Add(s.gameObject);
-            }
-        }
+        var boidColliders = Physics.OverlapSphere(transform.position, neighborhoodRadius, layer);
+        boids = boidColliders.Select(o => o.gameObject).ToList();
+        boids.Remove(gameObject);
     }
 
-    void Attract()
+    Vector3 Attract()
     {
-        Vector3 avgDistance = new Vector3(0, 0, 0);
+        if (boids.Count == 0 && !leaderActive) return Vector3.zero;
+
+        Vector3 sumPos = Vector3.zero;
 
         foreach (GameObject b in boids)
         {
-            avgDistance += transform.position - b.transform.position;
+            sumPos += b.transform.position;
         }
 
-        if (boids.Count > 0)
+        if (leaderActive)
         {
-            avgDistance /= boids.Count;
-            rb.velocity -= avgDistance / 100;
+            sumPos += leader.transform.position;
+            sumPos /= boids.Count + 1;
         }
+        else
+        {
+            sumPos /= boids.Count;
+        }
+
+
+        Vector3 direction = sumPos - transform.position;
+        return Steer(direction.normalized * maxSpeed);
     }
 
-    void Align()
+    Vector3 Align()
     {
-        Vector3 avgVelocity = new Vector3(0, 0, 0);
+        Vector3 avgVelocity = Vector3.zero;
+        if (boids.Count == 0) return avgVelocity;
 
         foreach (GameObject b in boids)
         {
-            avgVelocity += b.GetComponent<Rigidbody>().velocity;
+            avgVelocity += b.GetComponent<Flock>().velocity;
         }
 
-        if (boids.Count > 0)
-        {
-            avgVelocity /= boids.Count;
-            rb.velocity += avgVelocity / 40;
-        }
+        avgVelocity /= boids.Count;
+        return Steer(avgVelocity.normalized * maxSpeed);
     }
 
-    void Repel()
+    Vector3 Repel()
     {
-        Vector3 distanceDiff = new Vector3(0, 0, 0);
+        Vector3 direction = Vector3.zero;
+        if (boids.Count == 0) return direction;
+
         int numClose = 0;
 
         foreach (GameObject b in boids)
         {
             float distance = Vector3.Distance(transform.position, b.transform.position);
-            if (distance < minDistance)
+            if (distance < neighborhoodRadius / 2)
             {
                 numClose += 1;
-                Vector3 diff = (transform.position - b.transform.position);
-                if (diff.x >= 0)
-                    diff.x = Mathf.Sqrt(minDistance) - diff.x;
-                else
-                    diff.x = -Mathf.Sqrt(minDistance) - diff.x;
-                if (diff.y >= 0)
-                    diff.y = Mathf.Sqrt(minDistance) - diff.y;
-                else
-                    diff.y = -Mathf.Sqrt(minDistance) - diff.y;
-                if (diff.z >= 0)
-                    diff.z = Mathf.Sqrt(minDistance) - diff.z;
-                else
-                    diff.z = -Mathf.Sqrt(minDistance) - diff.z;
-                distanceDiff += diff;
+                Vector3 difference = (transform.position - b.transform.position);
+                direction += difference.normalized / difference.magnitude;
             }
         }
 
-        if (numClose > 0)
+        direction /= numClose;
+        return Steer(direction.normalized * maxSpeed);
+    }
+
+    private Vector3 Steer(Vector3 desired)
+    {
+        var steer = desired - velocity;
+        steer = LimitMagnitude(steer, maxForce);
+
+        return steer;
+    }
+
+    private Vector3 LimitMagnitude(Vector3 baseVector, float maxMagnitude)
+    {
+        if (baseVector.sqrMagnitude > maxMagnitude * maxMagnitude)
         {
-            rb.velocity -= distanceDiff / 5;
+            baseVector = baseVector.normalized * maxMagnitude;
         }
+        return baseVector;
     }
 }
